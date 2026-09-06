@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Computer Science Mock Test 2</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    h1 {
+      font-size: 24px;
+      color: var(--primary);
+      margin: 0 0 10px 0;
+    }
+    .info-bar {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .timer {
+      font-size: 20px;
+      font-weight: bold;
+      background: #ef4444;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+    }
+    .student-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    .question-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #fafafa;
+    }
+    .question-title {
+      font-weight: 600;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .option-label {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .option-label:hover {
+      background: #f1f5f9;
+    }
+    .option-label input {
+      margin-right: 12px;
+    }
+    .submit-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .submit-btn:hover {
+      background: #1d4ed8;
+    }
+    #result-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+    }
+    .status-msg {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #059669;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>Computer Science (Set-1) Mock Test 2</h1>
+      <div class="info-bar">Full Marks: 70 | Time: 3 Hours</div>
+    </div>
+    <div class="timer" id="timer">03:00:00</div>
+  </header>
+
+  <form id="quiz-form">
+    <div class="student-info">
+      <div class="input-group">
+        <label for="student-name">Student Name *</label>
+        <input type="text" id="student-name" name="Student_Name" required placeholder="Enter full name">
+      </div>
+      <div class="input-group">
+        <label for="student-id">Roll Number / Student ID *</label>
+        <input type="text" id="student-id" name="Student_ID" required placeholder="Enter ID">
+      </div>
+    </div>
+
+    <div id="questions-container"></div>
+
+    <button type="submit" class="submit-btn" id="submit-btn-text">Submit Test</button>
+  </form>
+</div>
+
+<div id="result-modal">
+  <div class="modal-content">
+    <h2>Test Submitted Successfully!</h2>
+    <p id="score-display" style="font-size: 22px; font-weight: bold; color: var(--primary);"></p>
+    <p class="status-msg" id="email-status">Sending your result to the instructor's email...</p>
+  </div>
+</div>
+
+<script>
+// ১. আপনার Formspree Endpoint URL টি নিচে বসিয়ে দিন
+const FORMSPREE_URL = "https://formspree.io/f/mdeolzak";
+
+const questionsData = [
+  { q: "1. একটি Recursive Algorithm-এ অবশ্যই কোন বিষয়টি থাকা উচিত, নাহলে recursion অনির্দিষ্টকাল চলতে পারে?", o: ["(a) Pointer", "(b) Base condition", "(c) Array", "(d) Structure"], a: 1 },
+  { q: "2. High Level Language-কে Machine Language-এ পরিবর্তন করতে কোন সফটওয়্যার ব্যবহৃত হয়?", o: ["(a) Converter", "(b) Interpreter", "(c) Assembler", "(d) কোনোটিই নয়"], a: 1 },
+  { q: "3. LINUX Operating System-এ ফাইল কপি করার Command কোনটি?", o: ["(a) copy", "(b) mv", "(c) cp", "(d) cpy"], a: 2 },
+  { q: "4. Encapsulation হলো নিচের কোনটির একটি মৌলিক ধারণা?", o: ["(a) Procedural Programming", "(b) Non-Procedural Programming", "(c) Object Oriented Programming", "(d) Recursive Algorithm"], a: 2 },
+  { q: "5. নিচের কোনটি একটি Non-procedural Programming Language?", o: ["(a) SQL", "(b) C", "(c) C++", "(d) Python"], a: 0 },
+  { q: "6. অক্টাল সংখ্যা পদ্ধতিতে ৬ এবং ৪ যোগ করলে যোগফল কত হবে?", o: ["(a) 10", "(b) 12", "(c) 14", "(d) 16"], a: 1 },
+  { q: "7. নিচের কোনটি একটি বিশেষ ধরনের মেমরি, যা RAM এবং ROM উভয়ের ন্যায় কাজ করে?", o: ["(a) Register Memory", "(b) Secondary Memory", "(c) Flash Memory", "(d) Cache Memory"], a: 2 },
+  { q: "8. NAND Gate দিয়ে একটি OR Gate তৈরি করতে ন্যূনতম কয়টি NAND Gate প্রয়োজন?", o: ["(a) 1টি", "(b) 2টি", "(c) 3টি", "(d) 4টি"], a: 2 },
+  { q: "9. অ্যালগরিদমের Time complexity-র উপরের সীমা (upper bound) প্রকাশ করতে কোনটি ব্যবহৃত হয়?", o: ["(a) Big O notation", "(b) Big Omega (Ω)", "(c) Big Theta (Θ)", "(d) Little o"], a: 0 },
+  { q: "10. নিচের কোনটি একটি Weighted Code-এর উদাহরণ?", o: ["(a) Excess-3 code", "(b) Binary 8-4-2-1", "(c) GRAY Code", "(d) Excess-3 ও GRAY উভয়ই"], a: 1 },
+  { q: "11. C ভাষায় নিচের কোন অপারেটরের precedence সবচেয়ে বেশি?", o: ["(a) *", "(b) ++", "(c) &&", "(d) ="], a: 1 },
+  { q: "12. নিচের কোন লুপটির Condition মিথ্যা হলেও লুপ বডি অন্তত একবার চালিত হবে?", o: ["(a) for", "(b) while", "(c) do-while", "(d) if"], a: 2 },
+  { q: "13. C ভাষায় Character I/O-এর জন্য ব্যবহৃত ফাংশন কোনটি?", o: ["(a) printf()", "(b) scanf()", "(c) getchar(), putchar()", "(d) strlen()"], a: 2 },
+  { q: "14. Object-Oriented Programming-এ Inheritance ব্যবস্থার মাধ্যমে যে মূল ক্লাসের ডেটা ব্যবহার করা হয়, তাকে কী বলা হয়?", o: ["(a) ফাদার ক্লাস", "(b) পেরেন্ট ক্লাস", "(c) মাদার ক্লাস", "(d) চাইল্ড ক্লাস"], a: 1 },
+  { q: "15. C-তে Call by Value পদ্ধতিতে ফাংশনে কী পাঠানো হয়?", o: ["(a) আসল ভ্যারিয়েবল", "(b) শুধু মানের কপি", "(c) মেমোরি ঠিকানা", "(d) কোনোটিই নয়"], a: 1 },
+  { q: "16. Pointer arithmetic-এ p++ করলে কী ঘটে?", o: ["(a) Pointer-এর মান ১ বাড়ে", "(b) Pointer address Data Type-এর আকার অনুযায়ী বাড়ে", "(c) সবসময় ৪ যোগ হয়", "(d) সবসময় ২ যোগ হয়"], a: 1 },
+  { q: "17. Boolean Algebra-তে Minterm-কে কোন চিহ্ন দ্বারা প্রকাশ করা হয়?", o: ["(a) α", "(b) Σ", "(c) π", "(d) Ω"], a: 1 },
+  { q: "18. C প্রোগ্রামে প্রিপ্রসেসর নির্দেশাবলী কোন চিহ্ন দিয়ে শুরু করা হয়?", o: ["(a) %", "(b) #", "(c) @", "(d) $"], a: 1 },
+  { q: "19. নিচের কোনটি C Language-এর একটি বৈধ (valid) Identifier?", o: ["(a) 2value", "(b) total-marks", "(c) total_marks", "(d) float"], a: 2 },
+  { q: "20. C প্রোগ্রামে #include <stdio.h> হেডারের প্রধান কাজ কী?", o: ["(a) Variable declare করা", "(b) Standard input/output functions-এর declaration নিশ্চিত করা", "(c) Loop তৈরি করা", "(d) Program terminate করা"], a: 1 },
+  { q: "21. Two-dimensional Array সাধারণত কোন ধরনের Data representation-এর জন্য ব্যবহৃত হয়?", o: ["(a) Table/Matrix", "(b) শুধুমাত্র একটি সংখ্যা", "(c) শুধুমাত্র একটি Character", "(d) Function return value"], a: 0 },
+  { q: "22. প্রোগ্রামিং-এ Function ব্যবহার করার একটি প্রধান সুবিধা কী?", o: ["(a) Code বারবার ব্যবহার (reuse) করা যায়", "(b) সব Variable স্বয়ংক্রিয়ভাবে মুছে যায়", "(c) Compiler-এর প্রয়োজন হয় না", "(d) Program-এর আকার বৃদ্ধি পায়"], a: 0 },
+  { q: "23. নিচের কোনটি একটি বৈধ Function Declaration / Prototype?", o: ["(a) int add(int, int);", "(b) add int(int,int);", "(c) function add(int,int);", "(d) int add;"], a: 0 },
+  { q: "24. C ভাষায় &x এক্সপ্রেশনটি কী নির্দেশ করে?", o: ["(a) x-এর মান", "(b) x-এর মেমরি ঠিকানা (address)", "(c) x-এর data type", "(d) x-এর আকার (size)"], a: 1 },
+  { q: "25. Flowchart-এ সিদ্ধান্তের (Decision) ওপর ভিত্তি করে বিকল্প পথ বেছে নিতে কোন প্রতীক ব্যবহৃত হয়?", o: ["(a) Rectangle", "(b) Diamond", "(c) Oval", "(d) Parallelogram"], a: 1 },
+  { q: "26. একটি Algorithm-এর time complexity যদি O(n²) হয়, তবে n-এর মান দ্বিগুণ হলে এক্সিকিউশন ধাপ কত গুণ বৃদ্ধি পাবে?", o: ["(a) প্রায় ২ গুণ", "(b) প্রায় ৪ গুণ", "(c) প্রায় ৮ গুণ", "(d) অপরিবর্তিত থাকবে"], a: 1 },
+  { q: "27. C-তে String-এর শেষে Null character '\\0' রাখার প্রধান কারণ কী?", o: ["(a) String-এর সমাপ্তি নির্দেশ করা", "(b) প্রথম Character নির্দেশ করা", "(c) Memory মুছে ফেলা", "(d) String-এর আকার দ্বিগুণ করা"], a: 0 },
+  { q: "28. কম্পিউটার মেমরি পরিমাপের এককের সঠিক ক্রম কোনটি?", o: ["(a) GB > TB > MB > KB", "(b) TB > GB > MB > KB", "(c) TB > KB > GB > MB", "(d) TB > GB > KB > MB"], a: 1 },
+  { q: "29. C-তে একটি Function Define করার সঠিক সিনট্যাক্স রূপ কোনটি?", o: ["(a) datatype function(parameters) { }", "(b) function datatype(parameters) { }", "(c) function(parameters) datatype { }", "(d) datatype(parameters) function { }"], a: 0 },
+  { q: "30. নিচের কোনটি একটি Relational Operator-এর উদাহরণ?", o: ["(a) +", "(b) <", "(c) =", "(d) &&"], a: 1 },
+  { q: "31. C প্রোগ্রামে a = 7 এবং b = 2 হলে, printf(\"%d\", a / b);-এর Output কত হবে?", o: ["(a) 3.5", "(b) 3", "(c) 4", "(d) 2"], a: 1 },
+  { q: "32. নিচের C কোড ব্লকের এক্সিকিউশন শেষে Output কত প্রদর্শিত হবে?\nint x = 10;\nx += 5;\nx *= 2;\nprintf(\"%d\", x);", o: ["(a) 20", "(b) 25", "(c) 30", "(d) 15"], a: 2 },
+  { q: "33. নিচের C কোড Snippet-এর Output কী হবে?\nint x = 12;\nif(x % 2 == 0)\n    printf(\"Even\");\nelse\n    printf(\"Odd\");", o: ["(a) Odd", "(b) Even", "(c) 12", "(d) Error"], a: 1 },
+  { q: "34. নিচের While loop-এর আউটপুট কত প্রকাশ পাবে?\nint i = 1, sum = 0;\nwhile(i <= 4){\n    sum = sum + i;\n    i++;\n}\nprintf(\"%d\", sum);", o: ["(a) 4", "(b) 6", "(c) 10", "(d) 15"], a: 2 },
+  { q: "35. নিচের C array কোডটির Output কত হবে?\nint a[] = {2, 4, 6, 8};\nprintf(\"%d\", a[0] + a[3]);", o: ["(a) 8", "(b) 10", "(c) 12", "(d) 14"], a: 1 },
+  { q: "36. প্রদত্ত Function সংকেত সমন্বিত প্রোগ্রামের Output কত?\nint square(int x){\n    return x * x;\n}\nint main(){\n    printf(\"%d\", square(4));\n}", o: ["(a) 4", "(b) 8", "(c) 16", "(d) 20"], a: 2 },
+  { q: "37. নিচের C প্রোগ্রামের Output কী প্রকাশ পাবে?\nvoid show(){\n    printf(\"Hello\");\n}\nint main(){\n    show();\n    show();\n}", o: ["(a) Hello", "(b) HelloHello", "(c) Hello2", "(d) Error"], a: 1 },
+  { q: "38. নিচের Pointer ভিত্তিক C কোডটির Output কী হবে?\nint x = 10;\nint *p = &x;\nprintf(\"%d\", *p);", o: ["(a) x-এর মেমরি অ্যাড্রেস", "(b) 10", "(c) Garbage value", "(d) Error"], a: 1 },
+  { q: "39. নিচের C কোডের এক্সিকিউশন এর ফলে আউটপুট কী হবে?\nint a = 10;\nprintf(\"%d %d\", a++, ++a);", o: ["(a) 10 12", "(b) 11 12", "(c) 10 11", "(d) 12 12"], a: 3 },
+  { q: "40. যদি for(i=0; i<5; i++); লেখার পর { printf(\"Hi\"); } থাকে, তবে Output কী হবে?", o: ["(a) Hi ৫ বার", "(b) Hi ১ বার", "(c) Hi অসীমবার", "(d) কোনো আউটপুট নেই"], a: 1 },
+  { q: "41. নিচের C অ্যারে কোডটির Output কত?\nint a[5] = {1, 2, 3, 4, 5};\nprintf(\"%d\", a[2]);", o: ["(a) 1", "(b) 2", "(c) 3", "(d) 5"], a: 2 },
+  { q: "42. যদি x = 5 এবং y = 2 হয়, তবে C ভাষা অনুসারে x % y-এর মান কত?", o: ["(a) 2", "(b) 1", "(c) 0", "(d) 5"], a: 1 },
+  { q: "43. float sum(int a, int b) { return a+b; } ফাংশনটির Return Type কী?", o: ["(a) int", "(b) float", "(c) double", "(d) void"], a: 1 },
+  { q: "44. নিচের C কোডটির Output কী হবে?\n#include <stdio.h>\nint main(){\n    int a = 10;\n    printf(\"%d\", a + 5);\n    return 0;\n}", o: ["(a) 10", "(b) 15", "(c) 5", "(d) Error"], a: 1 },
+  { q: "45. নিচের Logical Expression সমৃদ্ধ C কোডের Output কত?\nint a = 5, b = 10;\nprintf(\"%d\", a < b && b > 5);", o: ["(a) 0", "(b) 1", "(c) 5", "(d) 10"], a: 1 },
+  { q: "46. স্তম্ভ–I-এর প্রবাহচিত্রের চিহ্নের সঙ্গে স্তম্ভ–II-এর কাজের মিল রেখে সঠিক উত্তর নির্বাচন করো:\n\nA. Rectangle | 1. Input/Output\nB. Diamond | 2. Process\nC. Parallelogram | 3. Decision\nD. Oval | 4. Start/End", o: ["(a) A–2, B–3, C–1, D–4", "(b) A–3, B–2, C–1, D–4", "(c) A–2, B–1, C–3, D–4", "(d) A–4, B–3, C–1, D–2"], a: 0 },
+  { q: "47. স্তম্ভ–I-এর Pointer চিহ্নের সাথে স্তম্ভ–II-এর সঠিক বর্ণনার মিল স্থাপন করো:\n\nA. &x | 1. Pointer দ্বারা নির্দেশিত মান\nB. *p | 2. Variable-এর Address\nC. p++ | 3. Pointer increment\nD. NULL | 4. কোনো বৈধ Object-এর address নির্দেশ করছে না", o: ["(a) A–2, B–1, C–3, D–4", "(b) A–1, B–2, C–4, D–3", "(c) A–2, B–3, C–1, D–4", "(d) A–4, B–1, C–2, D–3"], a: 0 },
+  { q: "48. স্তম্ভ–I-এর Function ধারণার সাথে স্তম্ভ–II-এর সঠিক অর্থ মেলাও:\n\nA. Parameter | 1. Function থেকে ফেরত পাঠানো মান\nB. Argument | 2. Function Definition-এর সময় ব্যবহৃত variable\nC. Return value | 3. Function call-এর সময় পাঠানো প্রকৃত মান\nD. Recursion | 4. Function-এর নিজেকেই call করা", o: ["(a) A–2, B–3, C–1, D–4", "(b) A–3, B–2, C–1, D–4", "(c) A–2, B–1, C–3, D–4", "(d) A–4, B–3, C–1, D–2"], a: 0 },
+  { q: "49. স্তম্ভ–I-এর সময়সীমার (Complexity) সাথে স্তম্ভ–II-এর সংকেতের সঠিক মিল খোঁজো:\n\nA. Constant time | 1. O(n)\nB. Linear time | 2. O(1)\nC. Quadratic time | 3. O(n²)\nD. Logarithmic time | 4. O(log n)", o: ["(a) A–2, B–1, C–3, D–4", "(b) A–1, B–2, C–3, D–4", "(c) A–2, B–3, C–1, D–4", "(d) A–4, B–1, C–3, D–2"], a: 0 },
+  { q: "50. স্তম্ভ–A-এর ডেটা বা রূপান্তরের সাথে স্তম্ভ–B-এর সমতুল্য মানের মিল নির্বাচন করো:\n\n(i) 11000110-এর সমতুল্য Gray code | (a) 0101011\n(ii) 1010101-এর ২-এর পরিপূরক | (b) 1000011\n(iii) দশমিক সংখ্যা 7-এর BCD সমতুল্য | (c) 10100101\n(iv) দশমিক সংখ্যা 67-এর বাইনারি সমতুল্য | (d) 0111", o: ["(a) (i)-(d), (ii)-(b), (iii)-(a), (iv)-(c)", "(b) (i)-(a), (ii)-(c), (iii)-(b), (iv)-(d)", "(c) (i)-(c), (ii)-(a), (iii)-(d), (iv)-(b)", "(d) (i)-(b), (ii)-(d), (iii)-(c), (iv)-(a)"], a: 2 },
+  { q: "51. নিচের দুটি Statement বিবেচনা করো:\nStatement I: Array-এর index C Language-এ সাধারণত 0 থেকে শুরু হয়।\nStatement II: int a[5]-এর শেষ valid index হলো 5।", o: ["(a) I সঠিক, II ভুল", "(b) I ভুল, II সঠিক", "(c) I ও II উভয়ই সঠিক", "(d) I ও II উভয়ই ভুল"], a: 0 },
+  { q: "52. নিচের দুটি Statement বিবেচনা করো:\nStatement I: *p pointer p যে address-কে point করছে, সেই address-এর value access করতে পারে।\nStatement II: &x ব্যবহার করে x-এর address পাওয়া যায়।", o: ["(a) I ও II উভয়ই সঠিক", "(b) I সঠিক, II ভুল", "(c) I ভুল, II সঠিক", "(d) I ও II উভয়ই ভুল"], a: 0 },
+  { q: "53. Array সম্পর্কিত নিচের বিবৃতিগুলি বিবেচনা করো:\nI. C ভাষায় Array indexing সাধারণত ০ থেকে শুরু হয়।\nII. int a[5]-এ a[5] একটি বৈধ element।\nIII. int a[5]-এর বৈধ index হলো ০ থেকে ৪ পর্যন্ত।", o: ["(a) শুধু I সঠিক", "(b) শুধু II সঠিক", "(c) I ও III সঠিক", "(d) I, II ও III সঠিক"], a: 2 },
+  { q: "54. Loop সম্পর্কিত নিচের বিবৃতিগুলি বিবেচনা করো:\nI. while loop-এর condition প্রথমে পরীক্ষা করা হয়।\nII. do-while loop অন্তত একবার execute হয়।\nIII. for loop-এ initialization, condition এবং update—তিনটিই বাধ্যতামূলক।", o: ["(a) শুধু I সঠিক", "(b) I ও II সঠিক", "(c) II ও III সঠিক", "(d) I, II ও III সঠিক"], a: 1 },
+  { q: "55. Operator সম্পর্কিত নিচের বিবৃতিগুলি বিবেচনা করো:\nI. == হলো relational/equality operator।\nII. = সাধারণত assignment-এর জন্য ব্যবহৃত হয়।\nIII. && Operator দুটি condition-এর অন্তত একটি true হলে true দেয়।", o: ["(a) I ও II সঠিক", "(b) II ও III সঠিক", "(c) I ও III সঠিক", "(d) I, II ও III সঠিক"], a: 0 },
+  { q: "56. নিচের C কোড ব্লকের সাপেক্ষে বিবৃতিগুলি বিবেচনা করো:\nint i, sum = 0;\nfor(i = 1; i <= 5; i++)\n    sum = sum + i;\nI. Loop মোট ৫ বার চলবে।\nII. Loop শেষে sum-এর মান হবে ১৫।\nIII. i-এর শেষ মান হবে ৫।", o: ["(a) শুধু I সঠিক", "(b) I ও II সঠিক", "(c) II ও III সঠিক", "(d) I, II ও III সঠিক"], a: 1 },
+  { q: "57. Pointer সম্পর্কিত নিচের বিবৃতিগুলি বিবেচনা করো:\nI. Pointer একটি অন্য variable-এর address সংরক্ষণ করতে পারে।\nII. & Operator একটি variable-এর address পাওয়ার জন্য ব্যবহৃত হতে পারে।\nIII. *p ব্যবহার করে pointer p যে variable-কে নির্দেশ করছে তার মান access করা যায়।", o: ["(a) শুধু I সঠিক", "(b) I ও II সঠিক", "(c) II ও III সঠিক", "(d) I, II ও III সঠিক"], a: 3 },
+  { q: "58. নিচের বিবৃতিগুলি বিবেচনা করো:\nবিবৃতি I: PROLOG একটি Non-Procedural Language।\nবিবৃতি II: PASCAL একটি Procedural Language।\nবিবৃতি III: Python একটি Object Oriented Programming Language।\nবিবৃতি IV: PHP একটি Assembly Language।\nকোন বাক্যটি সঠিক নয়?", o: ["(a) বিবৃতি I", "(b) বিবৃতি II", "(c) বিবৃতি III", "(d) বিবৃতি IV"], a: 3 },
+  { q: "59. Assertion (A): একটি ভালো Algorithm-এর অবশ্যই finite number of steps থাকা উচিত।\nReason (R): Algorithm-এর execution অবশ্যই কোনো নির্দিষ্ট সময়ে শেষ হওয়া উচিত।", o: ["(a)", "(b)", "(c)", "(d)"], a: 0 },
+  { q: "60. Assertion (A): C ভাষায় 5/2-এর ফল 2.5 হবে।\nReason (R): C-তে দুটি operand-ই integer হলে integer division সম্পন্ন হয়।", o: ["(a)", "(b)", "(c)", "(d)"], a: 3 },
+  { q: "61. Assertion (A): নিচের প্রোগ্রামটি a-এর মান পরিবর্তন করে ২০ করবে:\nvoid change(int *p){ *p = 20;}\nint main(){ int a = 10; change(&a);}\nReason (R): &a দ্বারা a-এর address function-এ পাঠানো হয়েছে এবং p দ্বারা সেই address-এর variable access করা হয়েছে।", o: ["(a)", "(b)", "(c)", "(d)"], a: 0 },
+  { q: "62. Assertion (A): do-while loop এমন পরিস্থিতিতে ব্যবহার করা যেতে পারে যেখানে loop body অন্তত একবার execute করা প্রয়োজন।\nReason (R): do-while loop-এ condition body execute হওয়ার পরে পরীক্ষা করা হয়।", o: ["(a)", "(b)", "(c)", "(d)"], a: 0 },
+  { q: "63. Assertion (A): একটি Structure-এর প্রতিটি member-এর data type একই হওয়া বাধ্যতামূলক।\nReason (R): Structure বিভিন্ন data type-এর member-কে একটি একক user-defined data type-এর মধ্যে সংগঠিত করতে পারে।", o: ["(a)", "(b)", "(c)", "(d)"], a: 3 },
+  { q: "64. Assertion (A): (1000100)₂-এর 2's complement হলো (0111100)₂।\nReason (R): কোনো বাইনারি সংখ্যার 1's complement-এর সঙ্গে 1 যোগ করলে তার 2's complement পাওয়া যায়।", o: ["(a)", "(b)", "(c)", "(d)"], a: 0 },
+  { q: "65. সমস্যা সমাধানের সঠিক ক্রমটি নির্বাচন করো:\n(i) অ্যালগোরিদম ডিজাইন বা ডেভেলপ করতে হবে।\n(ii) কোনো সমস্যার সমাধান খোঁজার আগে সমস্যাটি বিশ্লেষণ করা জরুরি।\n(iii) প্রোগ্রাম টেস্টিং এবং ডিবাগিং-এর মাধ্যমে কোডের মধ্যে ত্রুটি খুঁজে বের করতে হবে।\n(iv) কোডিং-এর মাধ্যমে অ্যালগোরিদমকে প্রোগ্রামিং ল্যাঙ্গুয়েজে ট্রান্সলেট করতে হবে।", o: ["(a) (ii) → (i) → (iv) → (iii)", "(b) (iv) → (ii) → (i) → (ii)", "(c) (iv) → (iii) → (i) → (ii)", "(d) (i) → (iii) → (iv) → (ii)"], a: 0 },
+  { q: "66. ডেটা পরিমাপ ও এককের সঠিক ক্রম কোনটি?\n(i) আটটি বিটের সারিকে একত্রে বাইট বলে।\n(ii) 1024 বাইটকে কিলোবাইট বলে।\n(iii) Binary ডিজিটের সংক্ষিপ্ত রূপ হল বিট।\n(iv) মেগাবাইট 1024 কিলোবাইট নিয়ে গঠিত।", o: ["(a) (iv) → (iii) → (ii) → (i)", "(b) (i) → (ii) → (iii) → (iv)", "(c) (iii) → (i) → (ii) → (iv)", "(d) (iii) → (ii) → (i) → (iv)"], a: 2 },
+  { q: "67. একটি পূর্ণসংখ্যা জোড় না বিজোড় তা যাচাই করার জন্য সিউডোকোডের নির্দেশগুলি ক্রম অনুসারে সাজাও:\n(i) If num MOD 2 = 0 then\n(ii) PRINT \"Odd number\"\n(iii) PRINT \"Even number\"\n(iv) PRINT \"Enter the number\"\n(v) ELSE\n(vi) Input num", o: ["(a) (iv) → (vi) → (i) → (iii) → (ii) → (v)", "(b) (vi) → (iv) → (i) → (ii) → (v) → (iii)", "(c) (vi) → (iv) → (i) → (iii) → (v) → (ii)", "(d) (iv) → (vi) → (i) → (iii) → (v) → (ii)"], a: 3 },
+  { q: "68. যদি 27x = 11011₂ হয়, তবে বেস x-এর মান কত?", o: ["(a) 8", "(b) 10", "(c) 16", "(d) কোনোটিই নয়"], a: 0 },
+  { q: "69. প্রদত্ত Boolean Expression-টি সরলীকরণ করো: Y = ABC + A B C", o: ["(a) Y = C", "(b) Y = B", "(c) Y = A", "(d) Y = A \bar{B}"], a: 0 },
+  { q: "70. একটি কলেজের ৫ জন শিক্ষার্থীর নম্বর নিচের C Program-এ সংরক্ষণ করা হয়েছে:\n#include <stdio.h>\nint main(){\n    int marks[5] = {45, 72, 68, 90, 55};\n    int sum = 0;\n    for(int i = 0; i < 5; i++){\n        sum = sum + marks[i];\n    }\n    printf(\"%d\", sum);\n    return 0;\n}\nউপরের C Program-টির সফল এক্সিকিউশন শেষে Output কত আসবে?", o: ["(a) 320", "(b) 325", "(c) 330", "(d) 350"], a: 2 }
+];
+
+// Render Questions
+const container = document.getElementById('questions-container');
+questionsData.forEach((q, idx) => {
+  const qCard = document.createElement('div');
+  qCard.className = 'question-card';
+  
+  let optionsHTML = '';
+  q.o.forEach((opt, optIdx) => {
+    optionsHTML += `
+      <label class="option-label">
+        <input type="radio" name="q${idx}" value="${optIdx}" required>
+        ${opt}
+      </label>
+    `;
+  });
+
+  qCard.innerHTML = `
+    <div class="question-title">${q.q}</div>
+    <div class="options">${optionsHTML}</div>
+  `;
+  container.appendChild(qCard);
+});
+
+// Countdown Timer (3 hours)
+let timeLeft = 3 * 60 * 60;
+const timerDisplay = document.getElementById('timer');
+
+const timerInterval = setInterval(() => {
+  timeLeft--;
+  const hours = Math.floor(timeLeft / 3600);
+  const minutes = Math.floor((timeLeft % 3600) / 60);
+  const seconds = timeLeft % 60;
+  
+  timerDisplay.textContent = 
+    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById('quiz-form').dispatchEvent(new Event('submit'));
+  }
+}, 1000);
+
+// Grade & Submit via Email
+document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearInterval(timerInterval);
+
+  const submitBtn = document.getElementById('submit-btn-text');
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Submitting...";
+
+  const studentName = document.getElementById('student-name').value;
+  const studentId = document.getElementById('student-id').value;
+  let score = 0;
+
+  questionsData.forEach((q, idx) => {
+    const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+    if (selected && parseInt(selected.value) === q.a) {
+      score++;
+    }
+  });
+
+  document.getElementById('score-display').textContent = `Score: ${score} / 70`;
+  document.getElementById('result-modal').style.display = 'flex';
+
+  // Formspree-তে ডাটা পাঠানোর কোড
+  const payload = {
+    Student_Name: studentName,
+    Student_ID: studentId,
+    Obtained_Score: `${score} / 70`,
+    Submission_Time: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+  };
+
+  try {
+    const response = await fetch(FORMSPREE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      document.getElementById('email-status').textContent = "✓ Record sent to instructor's email successfully!";
+      document.getElementById('email-status').style.color = "#059669";
+    } else {
+      throw new Error('Failed to send email');
+    }
+  } catch (error) {
+    document.getElementById('email-status').textContent = "✗ Test recorded locally, but failed to send email.";
+    document.getElementById('email-status').style.color = "#dc2626";
+  }
+});
+</script>
+
+</body>
+</html>
